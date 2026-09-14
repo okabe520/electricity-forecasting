@@ -6,7 +6,7 @@
 
 | 模型 | 文件 | 说明 |
 |------|------|------|
-| GradientBoosting | `main.py` | 24h 滞后特征 + 时间描述符，预测 2018-12-15 |
+| GradientBoosting | `main.py` | calendar 特征 + 24h 历史负荷/实际电价滞后特征；滚动 one-hour-ahead 预测 |
 | LSTM | `question3/main.py` | 24h 滑动窗口多步多输出（负荷/电价/生物质） |
 
 ## 数据
@@ -18,7 +18,7 @@
 
 ## 输出
 
-- `predicted_day.csv` — GB 模型 24h 预测 + MAE 评估
+- `predicted_day.csv` — 2018-12-15 的 24 个滚动 one-hour-ahead GB 预测；MAE 在完整 held-out 2018 period 上计算
 - `question3/` — LSTM 预测对比图 (load/price/biomass)
 
 ## 技术栈

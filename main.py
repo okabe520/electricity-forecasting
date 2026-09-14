@@ -36,8 +36,13 @@ df = df.dropna()
 # 预测目标
 target_cols = ["total load actual", "price actual"]
 
-# 构建训练集特征
-feature_cols = [col for col in df.columns if col not in target_cols]
+# Forecast-time feature policy: at timestamp t, targets are the actual load and
+# price at t. Only calendar fields known in advance and observations through
+# t-1 are allowed as model inputs, making this a rolling one-hour-ahead task.
+calendar_features = ["hour", "dayofweek", "month", "is_weekend"]
+load_lag_features = [f"load_lag_{lag}" for lag in range(1, 25)]
+price_lag_features = [f"price_lag_{lag}" for lag in range(1, 25)]
+feature_cols = calendar_features + load_lag_features + price_lag_features
 
 # 划分训练集与测试集（用2018年前的数据训练，2018年测试）
 train_df = df[df.index < "2018-01-01"]
@@ -52,8 +57,8 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # 模型训练（可替换为更复杂模型如LSTM/XGBoost）
-load_model = GradientBoostingRegressor()
-price_model = GradientBoostingRegressor()
+load_model = GradientBoostingRegressor(random_state=42)
+price_model = GradientBoostingRegressor(random_state=42)
 
 logging.info("Training load model...")
 load_model.fit(X_train_scaled, y_train["total load actual"])
