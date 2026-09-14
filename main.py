@@ -69,11 +69,31 @@ price_model.fit(X_train_scaled, y_train["price actual"])
 load_pred = load_model.predict(X_test_scaled)
 price_pred = price_model.predict(X_test_scaled)
 
-load_mae = mean_absolute_error(y_test["total load actual"], load_pred)
-price_mae = mean_absolute_error(y_test["price actual"], price_pred)
+# Evaluate Gradient Boosting and daily persistence on the same held-out rows.
+# The dataframe has already removed missing lag values, but the explicit mask
+# keeps the comparison valid if the preprocessing changes in the future.
+evaluation_index = test_df.index[
+    test_df[["load_lag_24", "price_lag_24"]].notna().all(axis=1)
+]
+y_eval = y_test.loc[evaluation_index]
+load_pred_eval = pd.Series(load_pred, index=y_test.index).loc[evaluation_index]
+price_pred_eval = pd.Series(price_pred, index=y_test.index).loc[evaluation_index]
 
-logging.info(f"MAE for load prediction: {load_mae:.2f}")
-logging.info(f"MAE for price prediction: {price_mae:.2f}")
+persistence_load_pred = test_df.loc[evaluation_index, "load_lag_24"]
+persistence_price_pred = test_df.loc[evaluation_index, "price_lag_24"]
+
+load_mae = mean_absolute_error(y_eval["total load actual"], load_pred_eval)
+price_mae = mean_absolute_error(y_eval["price actual"], price_pred_eval)
+persistence_load_mae = mean_absolute_error(y_eval["total load actual"], persistence_load_pred)
+persistence_price_mae = mean_absolute_error(y_eval["price actual"], persistence_price_pred)
+load_improvement = (persistence_load_mae - load_mae) / persistence_load_mae * 100
+price_improvement = (persistence_price_mae - price_mae) / persistence_price_mae * 100
+
+logging.info(f"Held-out evaluation samples: {len(evaluation_index)}")
+logging.info(f"Persistence (t-24) load MAE: {persistence_load_mae:.2f}")
+logging.info(f"Gradient Boosting load MAE: {load_mae:.2f} ({load_improvement:.2f}% vs persistence)")
+logging.info(f"Persistence (t-24) price MAE: {persistence_price_mae:.2f}")
+logging.info(f"Gradient Boosting price MAE: {price_mae:.2f} ({price_improvement:.2f}% vs persistence)")
 
 # 保存未来某天的预测
 future_day = "2018-12-15"

@@ -21,6 +21,15 @@
 - `predicted_day.csv` — 2018-12-15 的 24 个滚动 one-hour-ahead GB 预测；MAE 在完整 held-out 2018 period 上计算
 - `question3/` — LSTM 预测对比图 (load/price/biomass)
 
+## Gradient Boosting held-out evaluation
+
+The Gradient Boosting model is compared with daily persistence (`prediction(t) = actual(t-24h)`) on the same 8,759 held-out 2018 timestamps.
+
+| Target | Persistence (t-24) MAE | Gradient Boosting MAE | Improvement |
+| --- | ---: | ---: | ---: |
+| Load | 2520.97 MW | 464.76 MW | 81.56% |
+| Price | 5.20 €/MWh | 1.73 €/MWh | 66.67% |
+
 ## 技术栈
 
 Python + scikit-learn + TensorFlow/Keras + pandas
