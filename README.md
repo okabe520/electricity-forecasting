@@ -1,6 +1,6 @@
 # Spanish Electricity Forecasting
 
-西班牙电网负荷与电价预测，基于 2014-2018 年 Red Eléctrica 数据。
+西班牙电网负荷与电价预测，基于公开发布的 2015-2018 年西班牙小时级电力与气象数据集。
 
 ## 方法
 
@@ -11,10 +11,16 @@
 
 ## 数据
 
-`data_cleaned.csv`：2014-2018 小时级数据
+`data_cleaned.csv`：2015-2018 小时级数据
 - 14 种发电方式出力（核/光/风/气/煤等）
 - 总负荷 + 日前电价 + 实际电价
 - 5 城气象（巴塞罗那/毕尔巴鄂/马德里/塞维利亚/瓦伦西亚）
+
+## Data source
+
+The processed CSV files in this repository follow the schema of Kaggle's [Hourly energy demand generation and weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) dataset for Spain. They are a merged public dataset, not files collected directly from a REE API by this repository.
+
+According to the Kaggle data card, hourly load and generation data originate from ENTSO-E, settlement-price data from the Spanish TSO Red Eléctrica de España (REE), and weather observations from the OpenWeather API for five Spanish cities. Kaggle lists the dataset release as CC0: Public Domain.
 
 ## 输出
 
@@ -37,7 +43,7 @@ Python + scikit-learn + TensorFlow/Keras + pandas
 ## 运行
 
 ```bash
-pip install pandas scikit-learn tensorflow openpyxl
+pip install -r requirements.txt
 python main.py
 cd question3 && python main.py
 ```
@@ -46,6 +52,7 @@ cd question3 && python main.py
 
 ```
 ├── main.py               # GradientBoosting 预测
+├── requirements.txt       # Python dependencies
 ├── data_cleaned.csv       # 原始数据
 ├── predicted_day.csv      # 预测结果
 ├── question3/
