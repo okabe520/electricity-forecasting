@@ -1,61 +1,76 @@
-# Spanish Electricity Forecasting
+# Spanish Electricity Load and Price Forecasting
 
-西班牙电网负荷与电价预测，基于公开发布的 2015-2018 年西班牙小时级电力与气象数据集。
+A Python project for hourly electricity-load and electricity-price forecasting using a public Spanish energy and weather dataset covering 2015–2018. The validated path is a Gradient Boosting model for rolling one-hour-ahead forecasts; the repository also includes a separate experimental LSTM implementation.
 
-## 方法
+## Validated Gradient Boosting Forecast
 
-| 模型 | 文件 | 说明 |
-|------|------|------|
-| GradientBoosting | `main.py` | calendar 特征 + 24h 历史负荷/实际电价滞后特征；滚动 one-hour-ahead 预测 |
-| LSTM | `question3/main.py` | 24h 滑动窗口多步多输出（负荷/电价/生物质） |
+`main.py` forecasts load and actual electricity price at time `t` using only information available by the forecast origin:
 
-## 数据
+- calendar features: hour, day of week, month, and weekend indicator;
+- the preceding 24 hours of observed load; and
+- the preceding 24 hours of observed actual price.
 
-`data_cleaned.csv`：2015-2018 小时级数据
-- 14 种发电方式出力（核/光/风/气/煤等）
-- 总负荷 + 日前电价 + 实际电价
-- 5 城气象（巴塞罗那/毕尔巴鄂/马德里/塞维利亚/瓦伦西亚）
+The feature set intentionally excludes contemporaneous generation, observed weather, and other target-time system variables. The task is **rolling one-hour-ahead forecasting**, not fixed-origin day-ahead forecasting.
 
-## Data source
+## Held-out Evaluation
 
-The processed CSV files in this repository follow the schema of Kaggle's [Hourly energy demand generation and weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) dataset for Spain. They are a merged public dataset, not files collected directly from a REE API by this repository.
+Training uses observations before 2018-01-01; evaluation uses the chronological 2018 hold-out period. The scaler is fit on the training partition only.
 
-According to the Kaggle data card, hourly load and generation data originate from ENTSO-E, settlement-price data from the Spanish TSO Red Eléctrica de España (REE), and weather observations from the OpenWeather API for five Spanish cities. Kaggle lists the dataset release as CC0: Public Domain.
-
-## 输出
-
-- `predicted_day.csv` — 2018-12-15 的 24 个滚动 one-hour-ahead GB 预测；MAE 在完整 held-out 2018 period 上计算
-- `question3/` — LSTM 预测对比图 (load/price/biomass)
-
-## Gradient Boosting held-out evaluation
-
-The Gradient Boosting model is compared with daily persistence (`prediction(t) = actual(t-24h)`) on the same 8,759 held-out 2018 timestamps.
+Gradient Boosting is evaluated against daily persistence, where `prediction(t) = actual(t - 24h)`, on the same **8,759** held-out timestamps.
 
 | Target | Persistence (t-24) MAE | Gradient Boosting MAE | Improvement |
 | --- | ---: | ---: | ---: |
 | Load | 2520.97 MW | 464.76 MW | 81.56% |
 | Price | 5.20 €/MWh | 1.73 €/MWh | 66.67% |
 
-## 技术栈
+`predicted_day.csv` contains the 24 rolling one-hour-ahead Gradient Boosting predictions for 2018-12-15. The MAE values above are calculated over the full held-out 2018 period.
 
-Python + scikit-learn + TensorFlow/Keras + pandas
+## Experimental LSTM
 
-## 运行
+`question3/main.py` contains a 24-hour-input, 24-hour multi-output forecasting experiment for load, price, and biomass generation. It is retained as an **experimental implementation**; it is not presented here as a validated held-out forecasting result.
+
+## Dataset
+
+The processed CSV files follow the schema of Kaggle's [Hourly energy demand generation and weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) dataset for Spain. This repository uses a processed, merged public dataset and does not collect data directly from a REE API.
+
+According to the Kaggle data card, the merged dataset includes:
+
+- ENTSO-E load and generation data;
+- settlement-price data from Red Eléctrica de España (REE); and
+- OpenWeather API observations for five Spanish cities.
+
+Kaggle lists that dataset release as CC0: Public Domain.
+
+## Tech Stack
+
+- Python
+- pandas and NumPy
+- scikit-learn
+- TensorFlow/Keras
+- matplotlib and seaborn
+
+## Installation and Usage
 
 ```bash
 pip install -r requirements.txt
 python main.py
-cd question3 && python main.py
 ```
 
-## 项目结构
+To run the experimental LSTM script:
 
+```bash
+cd question3
+python main.py
 ```
-├── main.py               # GradientBoosting 预测
+
+## Repository Structure
+
+```text
+├── main.py               # Validated Gradient Boosting forecasting pipeline
 ├── requirements.txt       # Python dependencies
-├── data_cleaned.csv       # 原始数据
-├── predicted_day.csv      # 预测结果
+├── data_cleaned.csv       # Processed hourly Spanish energy and weather data
+├── predicted_day.csv      # Gradient Boosting predictions for 2018-12-15
 ├── question3/
-│   └── main.py            # LSTM 多步预测
+│   └── main.py            # Experimental LSTM forecasting implementation
 └── README.md
 ```
